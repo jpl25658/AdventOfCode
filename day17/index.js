@@ -119,6 +119,8 @@ const dropRockInto = (chamber) => {
 
 const getResult1 = () => {
     const chamber = new Chamber();
+    movesNdx = resetMoves();
+    shapesNdx = resetShapes();
     for (let i = 0; i < 2022; i++) {
         dropRockInto(chamber);
     }
@@ -133,44 +135,34 @@ const getResult2 = () => {
     const previousHeight = [];
     const targetRocks = 1_000_000_000_000;
     let numRocks = 0;
-    let totalHeight = 0;
+    let numRocksFromCycles = 0;
+    let totalHeightFromCycles = 0;
     let state;
-    while (numRocks < targetRocks) {
+    while ((numRocks + numRocksFromCycles) < targetRocks) {
         numRocks++;
         dropRockInto(chamber);
-        [totalHeight, state] = chamber.getHeightAndState();
+        let [chamberHeight, state] = chamber.getHeightAndState();
         const ndx = previousStates.findIndex((x) => x === state);
         if (ndx == -1) {
             previousStates.push(state);
-            previousHeight.push(totalHeight);
+            previousHeight.push(chamberHeight);
         } else {
-           console.log(`
+
+            console.log(`
 Found cycle in ndx ${ndx}
 From rock ${ndx+1} to rock ${numRocks} -> every ${numRocks - ndx - 1} rocks
-From height ${previousHeight[ndx]} to ${totalHeight} ->  increment ${totalHeight - previousHeight[ndx]}
-`);
+From height ${previousHeight[ndx]} to ${chamberHeight} ->  increment ${chamberHeight - previousHeight[ndx]}`);
 
             const rockIncrement = numRocks - ndx - 1;
-            const heightIncrement = totalHeight - previousHeight[ndx];
-            // find how many full cycles fit
-            console.log(numRocks, rockIncrement ,targetRocks - numRocks)
-            console.log(999999999937 / rockIncrement)
+            const heightIncrement = chamberHeight - previousHeight[ndx];
             const cycles = Math.floor((targetRocks - numRocks) / rockIncrement);
-            numRocks += (cycles * rockIncrement);
-            totalHeight += (cycles * heightIncrement);
-            console.log(63 + 28571428569*35)
-            console.log(cycles, numRocks, totalHeight)
-            // last incomplete cycle
-            if (numRocks < targetRocks) {
-                console.log(previousHeight.slice(59, 60), previousHeight.slice(59+140-1, 59+140+2))
-                console.log(targetRocks - numRocks)
-                console.log(312-97)
-                totalHeight += (previousHeight[ndx + targetRocks - numRocks] - previousHeight[ndx]);
-                numRocks = targetRocks;
-            }
+            numRocksFromCycles += (cycles * rockIncrement);
+            totalHeightFromCycles += (cycles * heightIncrement);
+            previousStates.splice(ndx);
+            previousHeight.splice(ndx);
         } 
     }
-    return totalHeight + 1;
+    return chamber.highest() + 1 + totalHeightFromCycles;
 };
 
 console.log({result1: getResult1(), result2: getResult2()});
