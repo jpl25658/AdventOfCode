@@ -1,52 +1,19 @@
 import { loadData } from './loadData.js';
 
-class Move {
-    constructor(qty, from, to) {
-        this.qty = qty;
-        this.from = from;
-        this.to = to;
-    }
-}
-
-class Stack {
-    constructor(name, initial) {
-        this.name = name;
-        this.crates = initial || [];
-    };
-    push(crate) { this.crates.push(crate); }
-    pop() { return this.crates.pop(); }
-    peek() { return this.crates.at(-1) || ''; }
-    popBlock(qty) { return this.crates.splice(-qty); }
-    pushBlock(block) { this.crates = [...this.crates, ...block]; }
-}
-
 let rawData;
 
 rawData = await loadData('./input.data');
 //rawData = await loadData('./test.data');
 
-const signals = rawData.split(/\r?\n/)
+const add = (s, n) => s + n;
+const desc = (a, b) => b - a;
+const first = (n) => (_, ndx) => ndx < n;
 
+const data = rawData.split(/\r?\n\r?\n/).map(block => block.split(/\r?\n/).map(Number)).map(elf => elf.reduce(add, 0));
+const topCalories = n => data.sort(desc).filter(first(n)).reduce(add, 0);
 
-const isMarker = (fragment) => [...fragment].map(letter => fragment.split(letter).length - 1).filter(n => n > 1).length == 0;
-
-const extractBlockNonRepeating = (signal, blockSize) => {
-    for (let i = blockSize; i < signal.length; i++) {
-        if (isMarker(signal.slice(i - blockSize, i))) {
-            return i;
-        }
-    }
-}
-
-// round 1 & 2
-const START_PACKET_SIZE = 4
-const START_MESSAGE_SIZE = 14
-let result1;
-let result2;
-signals.forEach((signal) => {
-    result1 = extractBlockNonRepeating(signal, START_PACKET_SIZE);
-    result2 = extractBlockNonRepeating(signal, START_MESSAGE_SIZE);
-});
+const getResult1 = () => topCalories(1);
+const getResult2 = () => topCalories(3);
 
 // output results
-console.log({result1, result2})
+console.log({result1: getResult1(), result2: getResult2()})
